@@ -2,10 +2,10 @@ package hermes
 
 import (
 	// "bytes"
-	"fmt"
-	"strings"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 )
 
 type slackMessage struct {
@@ -21,7 +21,7 @@ type attachment struct {
 	Color      string   `json:"color,omitempty"`
 	Title      string   `json:"title,omitempty"`
 	Text       string   `json:"text,omitempty"`
-	MarkdownIn []string `json:"mrkdwn_in,omitempty"`	
+	MarkdownIn []string `json:"mrkdwn_in,omitempty"`
 }
 
 type field struct {
@@ -49,14 +49,14 @@ func codeOrEmpty(code string) string {
 
 func (s SlackNotifier) Success(cmd *Command) {
 	msg := slackMessage{
-		Sender: s.sender,
+		Sender:    s.sender,
 		Recipient: s.recipient,
-		Markdown: true,
-		Text: "*Hermes Command Completed!*",
+		Markdown:  true,
+		Text:      "*Hermes Command Completed!*",
 		Attachments: []attachment{
 			attachment{
-				Title: "Command",
-				Text: fmt.Sprintf("```%s```", strings.Join(cmd.Cmd.Args, " ")),
+				Title:      "Command",
+				Text:       fmt.Sprintf("```%s```", strings.Join(cmd.Cmd.Args, " ")),
 				MarkdownIn: []string{"text"},
 			},
 			attachment{
@@ -68,13 +68,13 @@ func (s SlackNotifier) Success(cmd *Command) {
 				MarkdownIn: []string{"text"},
 			},
 			attachment{
-				Title: "Standard out",
-				Text: codeOrEmpty(cmd.Stdout.String()),
+				Title:      "Standard out",
+				Text:       codeOrEmpty(cmd.Stdout.String()),
 				MarkdownIn: []string{"text"},
 			},
 			attachment{
-				Title: "Standard error",
-				Text: codeOrEmpty(cmd.Stderr.String()),
+				Title:      "Standard error",
+				Text:       codeOrEmpty(cmd.Stderr.String()),
 				MarkdownIn: []string{"text"},
 			},
 		},

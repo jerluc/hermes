@@ -1,8 +1,23 @@
 package hermes
 
-type Config map[string]interface{}
+import (
+	yaml "gopkg.in/yaml.v2"
+	"io/ioutil"
+)
 
-func (c Config) Get(key string, defaultValue...string) string {
+type Config map[interface{}]interface{}
+
+func LoadConfig(path string) (*Config, error) {
+	var config Config
+	contents, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(contents, &config)
+	return &config, err
+}
+
+func (c Config) Get(key string, defaultValue ...string) string {
 	value, keyExists := c[key]
 	if !keyExists {
 		if len(defaultValue) == 0 {

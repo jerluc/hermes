@@ -1,9 +1,10 @@
 package main
 
 import (
-	"os"
-
+	"fmt"
 	hermes "github.com/jerluc/hermes/lib"
+	"os"
+	"os/user"
 )
 
 var notifier hermes.Notifier
@@ -20,21 +21,20 @@ func handleSuccess(cmd *hermes.Command) {
 }
 
 func handleStdout(cmd *hermes.Command, buffer string) {
-	
+
 }
 
 func handleStderr(cmd *hermes.Command, buffer string) {
-	
+
 }
 
 func installNotifier() {
-	// TODO: Load config from the filesystem
-	config := hermes.Config{
-		"notifier": hermes.Config{
-			"type": "slack",
-			"webHookUrl": "https://hooks.slack.com/services/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",
-			"recipient": "@jerluc",
-		},
+	usr, _ := user.Current()
+	dir := usr.HomeDir
+	config, configErr := hermes.LoadConfig(dir + "/.hermes.yml")
+	if configErr != nil {
+		fmt.Println(configErr)
+		os.Exit(1)
 	}
 	notifier = hermes.GetNotifier(config)
 }
