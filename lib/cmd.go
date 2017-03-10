@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"syscall"
 )
 
 type Command struct {
@@ -29,6 +30,8 @@ func NewCommand(argv []string) *Command {
 		bytes.NewBuffer([]byte{}),
 	}
 
+	// Tees stdout and stderr to be written both to the screen and to
+	// the command instance's stdout and stderr buffers
 	out, _ := execCmd.StdoutPipe()
 	go io.Copy(io.MultiWriter(os.Stdout, cmd.Stdout), out)
 	err, _ := execCmd.StderrPipe()
@@ -37,6 +40,18 @@ func NewCommand(argv []string) *Command {
 	return cmd
 }
 
-func (c *Command) Run() error {
-	return c.Cmd.Run()
+func (c *Command) Run(notifier Notifier) int {
+	runErr := c.Cmd.Run()
+	if runErr != nil {
+		if exitErr, ok := runErr.(*exec.ExitError); ok {
+			status, _ := exitErr.Sys().(syscall.WaitStatus)
+			notifier.Failure(c, runErr)
+			return status.ExitStatus()
+		} else {
+			panic(runErr)
+		}
+	}
+
+	notifier.Success(c)
+	return 0
 }

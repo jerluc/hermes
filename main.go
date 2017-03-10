@@ -7,49 +7,30 @@ import (
 	"os/user"
 )
 
-var notifier hermes.Notifier
-
-func handleFailure(cmd *hermes.Command, err error) {
-	notifier.Failure(cmd, err)
-	// TODO: Get the platform-independent exit code
-	os.Exit(1)
-}
-
-func handleSuccess(cmd *hermes.Command) {
-	notifier.Success(cmd)
-	os.Exit(0)
-}
-
-func handleStdout(cmd *hermes.Command, buffer string) {
-
-}
-
-func handleStderr(cmd *hermes.Command, buffer string) {
-
-}
-
-func installNotifier() {
-	usr, _ := user.Current()
-	dir := usr.HomeDir
+func instantiateNotifier() (hermes.Notifier, error) {
+	dir := "."
+	if _, err := os.Stat(".hermes.yml"); os.IsNotExist(err) {
+		usr, _ := user.Current()
+		dir = usr.HomeDir
+	}
 	config, configErr := hermes.LoadConfig(dir + "/.hermes.yml")
 	if configErr != nil {
-		fmt.Println(configErr)
-		os.Exit(1)
+		return nil, configErr
 	}
-	notifier = hermes.GetNotifier(config)
+	return hermes.GetNotifier(config), nil
 }
 
 func main() {
-	installNotifier()
+	notifier, err := instantiateNotifier()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	// TODO: Check for number of args or print usage
 
 	cmd := hermes.NewCommand(os.Args[1:])
 
-	runErr := cmd.Run()
-	if runErr != nil {
-		handleFailure(cmd, runErr)
-	}
-
-	handleSuccess(cmd)
+	exitCode := cmd.Run(notifier)
+	os.Exit(exitCode)
 }

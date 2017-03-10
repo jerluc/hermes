@@ -36,6 +36,15 @@ type SlackNotifier struct {
 	recipient  string
 }
 
+// Creates a new Slack-enabled notifier. This expects a minimal Hermes
+// configuration that looks like:
+//
+// notifier:
+//   type: slack
+//   webHookUrl: <SLACK_WEB_HOOK_URL>
+//   sender: <SLACK_SENDER_NAME>
+//   recipient: <SLACK_RECIPIENT_NAME>
+//
 func NewSlackNotifier(config Config) Notifier {
 	return &SlackNotifier{config.Get("webHookUrl"), config.Get("sender", "hermes"), config.Get("recipient")}
 }
