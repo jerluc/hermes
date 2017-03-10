@@ -17,5 +17,6 @@ hermes <COMMAND> [ARGS ... ]
 
 For example:
 ```bash
-hermes echo "Hello, world!"
+hermes echo 'Hello, world!'
+hermes cat /path/does/not/exist
 ```
