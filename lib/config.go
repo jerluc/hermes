@@ -1,6 +1,7 @@
 package hermes
 
 import (
+	"fmt"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -21,7 +22,7 @@ func (c Config) Get(key string, defaultValue ...string) string {
 	value, keyExists := c[key]
 	if !keyExists {
 		if len(defaultValue) == 0 {
-			return ""
+			panic(fmt.Errorf("Missing configuration key: '%s'", key))
 		} else {
 			return defaultValue[0]
 		}
@@ -35,4 +36,12 @@ func (c Config) GetConfig(key string) Config {
 		return Config{}
 	}
 	return value.(Config)
+}
+
+func (c Config) GetMultiple(key string) []interface{} {
+	value, keyExists := c[key]
+	if !keyExists {
+		return []interface{}{}
+	}
+	return value.([]interface{})
 }

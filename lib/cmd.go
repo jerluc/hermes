@@ -1,18 +1,31 @@
 package hermes
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"syscall"
+	"strings"
 )
 
 type Command struct {
 	Cmd    *exec.Cmd
 	Stdout *bytes.Buffer
 	Stderr *bytes.Buffer
+}
+
+func peek(reader io.Reader, numlines int) string {
+	var lines = []string{}
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+		if len(lines) == numlines {
+			break
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
 type Printer struct{}
@@ -40,18 +53,37 @@ func NewCommand(argv []string) *Command {
 	return cmd
 }
 
+func (c *Command) CmdLine() string {
+	return strings.Join(c.Cmd.Args, " ")
+}
+
+func (c *Command) PeekStdout(numlines int) string {
+	return peek(c.Stdout, numlines)
+}
+
+func (c *Command) PeekStderr(numlines int) string {
+	return peek(c.Stderr, numlines)
+}
+
+func (c *Command) ExitCode() int {
+	return c.Cmd.ProcessState.ExitCode()
+}
+
+func (c *Command) Successful() bool {
+	return c.ExitCode() == 0
+}
+
 func (c *Command) Run(notifier Notifier) int {
 	runErr := c.Cmd.Run()
+
 	if runErr != nil {
-		if exitErr, ok := runErr.(*exec.ExitError); ok {
-			status, _ := exitErr.Sys().(syscall.WaitStatus)
-			notifier.Failure(c, runErr)
-			return status.ExitStatus()
-		} else {
+		if _, ok := runErr.(*exec.ExitError); !ok {
 			panic(runErr)
 		}
 	}
 
-	notifier.Success(c)
-	return 0
+	if notifyErr := notifier.Notify(c); notifyErr != nil {
+		panic(notifyErr)
+	}
+	return c.ExitCode()
 }

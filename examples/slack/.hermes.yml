@@ -1,5 +1,0 @@
-notifier:
-    type: slack
-    webHookUrl: <SLACK_WEB_HOOK_URL>
-    sender: <SLACK_SENDER_NAME>
-    recipient: <SLACK_RECIPIENT_NAME>

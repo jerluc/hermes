@@ -1,8 +1,11 @@
 package hermes
 
+import (
+	"fmt"
+)
+
 type Notifier interface {
-	Success(cmd *Command)
-	Failure(cmd *Command, err error)
+	Notify(cmd *Command) error
 }
 
 // Creates a new Hermes notifier instance from the parsed configuration
@@ -18,9 +21,11 @@ func GetNotifier(config *Config) Notifier {
 	switch notifierType {
 	case "desktop":
 		return NewDesktopNotifier(notifierConfig)
-	case "slack":
-		return NewSlackNotifier(notifierConfig)
+	case "twilio":
+		return NewTwilioNotifier(notifierConfig)
+	case "multi":
+		return NewMultiNotifier(notifierConfig)
 	default:
-		return nil
+		panic(fmt.Sprintf("Unknown notifier type: %s", notifierType))
 	}
 }

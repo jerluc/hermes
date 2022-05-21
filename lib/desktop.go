@@ -1,7 +1,6 @@
 package hermes
 
 import (
-	"strings"
 	"github.com/0xAX/notificator"
 )
 
@@ -24,20 +23,21 @@ func NewDesktopNotifier(config Config) Notifier {
 	return &DesktopNotifier{n}
 }
 
-func (d DesktopNotifier) Failure(cmd *Command, err error) {
-	d.notifier.Push(
-		strings.Join(cmd.Cmd.Args, " "),
-		cmd.Stderr.String(),
-		"",
-		notificator.UR_CRITICAL,
-	)
-}
-
-func (d DesktopNotifier) Success(cmd *Command) {
-	d.notifier.Push(
-		strings.Join(cmd.Cmd.Args, " "),
-		cmd.Stdout.String(),
-		"",
-		notificator.UR_NORMAL,
-	)
+func (d DesktopNotifier) Notify(cmd *Command) error {
+	if cmd.Successful() {
+		d.notifier.Push(
+			cmd.CmdLine(),
+			cmd.PeekStdout(1),
+			"",
+			notificator.UR_NORMAL,
+		)
+	} else {
+		d.notifier.Push(
+			cmd.CmdLine(),
+			cmd.PeekStderr(1),
+			"",
+			notificator.UR_CRITICAL,
+		)
+	}
+	return nil
 }
